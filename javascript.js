@@ -4,7 +4,7 @@ function GameBoard() {
     const columns = 3;
     const board = [];
 
-    // create the board
+    // Create the board
     for (let i = 0; i < rows; i++) {
         board[i] = [];
         for (let j = 0; j < columns; j++) {
@@ -12,9 +12,8 @@ function GameBoard() {
         }
     }
 
-    // Method to retrive the board outside this function
+    // Function methods
     const getBoard = () => board;
-
 
     const printBoard = () => {
         console.log(board.map((row) => row.map((cell) => cell.getValue())));
@@ -24,20 +23,25 @@ function GameBoard() {
         board[row][column].addMarker(player);
     }
 
+
     return { getBoard, printBoard, placeMarker };
 }
+
 
 function Cell() {
     let value = 0;
 
+    // Function methods
     const addMarker = (player) => {
         value = player;
     };
 
     const getValue = () => value;
 
+
     return { getValue, addMarker };
 }
+
 
 function GameController(
     playerOneName = 'Player One',
@@ -58,6 +62,7 @@ function GameController(
 
     let activePlayer = players[0];
 
+    // Function methods
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
         console.log(`Active player is: ${activePlayer.name}`);
@@ -71,21 +76,18 @@ function GameController(
 
     const winCondition = () => {
         const winConditions = [
-            [0, 1, 2], // Top row
-            [3, 4, 5], // Middle row
-            [6, 7, 8], // Bottom row
-            [0, 3, 6], // Left column
-            [1, 4, 7], // Middle column
-            [2, 5, 8], // Right column
-            [0, 4, 8], // Left diagonal
-            [2, 4, 6]  // Right diagonal
+            [[0, 0], [0, 1], [0, 2]], // Top row
+            [[1, 0], [1, 1], [1, 2]], // Middle row
+            [[2, 0], [2, 1], [2, 2]], // Bottom row
+            [[0, 0], [1, 0], [2, 2]]  // Left column
+            [[0, 1], [1, 1], [2, 1]]  // Middle column
+            [[0, 2], [1, 2], [2, 2]]  // Right column
+            [[0, 0], [1, 1], [2, 2]]  // Left diagonal
+            [[0, 2], [1, 1], [2, 0]]  // Right diagonal
         ];
-
-        
     }
 
     const playRound = (row, column) => {
-        // might need to put this check in placeMarker() above
         if (board.getBoard()[row][column].getValue() === 0) {
             console.log(`Placing ${getActivePlayer().name}'s marker into row: ${row}; column: ${column}..`);
             board.placeMarker(row, column, getActivePlayer().marker);
@@ -94,15 +96,66 @@ function GameController(
             console.log('Cell already taken, chose again ...');
         }
 
-        // check for a win condition
+        // check for a win condition here
 
         printNewRound();
     }
 
 
-    return { getActivePlayer, playRound }
-
+    return { getActivePlayer, playRound, getBoard: board.getBoard }
 }
 
 
-const game = GameController();
+function ScreenController() {
+    const game = GameController();
+
+    const gridDiv = document.querySelector('.grid');
+    const displayDiv = document.querySelector('.display');
+
+    // Function methods
+    const updateScreen = () => {
+        // Clear screen
+        gridDiv.textContent = '';
+
+        // Show most up-to-date board and player
+        const board = game.getBoard();
+        const currentPlayer = game.getActivePlayer();
+
+        displayDiv.textContent = `${currentPlayer.name}'s turn ...`;
+
+        // Iterate through board adding button to each cell
+        // dataset attributes help determine which cell was clicked on
+        let rowCount = 0;
+        board.forEach((row) => {
+            row.forEach((cell, index) => {
+                const cellBtn = document.createElement('button');
+                cellBtn.classList.add('cell');
+
+                cellBtn.dataset.row = rowCount;
+                cellBtn.dataset.column = index;
+                cellBtn.textContent = cell.getValue();
+                gridDiv.appendChild(cellBtn);
+            });
+            rowCount++;
+        });
+
+    }
+
+    const clickHandlerBoard = (e) => {
+        const selectedColumn = e.target.dataset.column;
+        const selectedRow = e.target.dataset.row;
+
+        // Ensure valid cell was selected
+        if (!selectedColumn) return;
+        if (!selectedRow) return;
+
+        game.playRound(selectedRow, selectedColumn);
+        
+        updateScreen();
+    }
+
+    gridDiv.addEventListener('click', clickHandlerBoard);
+    updateScreen();
+}
+
+ScreenController();
