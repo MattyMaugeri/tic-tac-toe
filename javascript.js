@@ -1,28 +1,23 @@
 
 function GameBoard() {
-    const rows = 3;
-    const columns = 3;
+    const cells = 9;
     const board = [];
 
     // Create the board
-    for (let i = 0; i < rows; i++) {
-        board[i] = [];
-        for (let j = 0; j < columns; j++) {
-            board[i].push(Cell());
-        }
+    for (let i = 0; i < cells; i++) {
+        board.push(Cell());
     }
 
     // Function methods
     const getBoard = () => board;
 
     const printBoard = () => {
-        console.log(board.map((row) => row.map((cell) => cell.getValue())));
+        console.log(board.map((cell) => cell.getValue()));
     }
 
-    const placeMarker = (row, column, player) => {
-        board[row][column].addMarker(player);
+    const placeMarker = (cell, player) => {
+        board[cell].addMarker(player);
     }
-
 
     return { getBoard, printBoard, placeMarker };
 }
@@ -38,7 +33,6 @@ function Cell() {
 
     const getValue = () => value;
 
-
     return { getValue, addMarker };
 }
 
@@ -52,11 +46,13 @@ function GameController(
     const players = [
         {
             name: playerOneName,
-            marker: 1
+            marker: 1,
+            array: []
         },
         {
             name: playerTwoName,
-            marker: 2
+            marker: 2,
+            array: []
         }
     ];
 
@@ -65,7 +61,6 @@ function GameController(
     // Function methods
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
-        console.log(`Active player is: ${activePlayer.name}`);
     };
 
     const getActivePlayer = () => activePlayer;
@@ -76,31 +71,44 @@ function GameController(
 
     const winCondition = () => {
         const winConditions = [
-            [[0, 0], [0, 1], [0, 2]], // Top row
-            [[1, 0], [1, 1], [1, 2]], // Middle row
-            [[2, 0], [2, 1], [2, 2]], // Bottom row
-            [[0, 0], [1, 0], [2, 2]]  // Left column
-            [[0, 1], [1, 1], [2, 1]]  // Middle column
-            [[0, 2], [1, 2], [2, 2]]  // Right column
-            [[0, 0], [1, 1], [2, 2]]  // Left diagonal
-            [[0, 2], [1, 1], [2, 0]]  // Right diagonal
+            [0, 1, 2],  // Top row
+            [3, 4, 5],  // Middle row
+            [6, 7, 8],  // Bottom row
+            [0, 3, 6],  // Left column
+            [1, 4, 7],  // Middle column
+            [2, 5, 8],  // Right column
+            [0, 4, 8],  // Left diagonal
+            [2, 4, 6]   // Right diagonal
         ];
+
+        console.log(players[0].array);
+        console.log(players[1].array);
+
+        console.log(winConditions.some(combination =>
+            combination.every(value =>
+                players[0].array.includes(value)
+            )
+        ));
+
+
     }
 
-    const playRound = (row, column) => {
-        if (board.getBoard()[row][column].getValue() === 0) {
-            console.log(`Placing ${getActivePlayer().name}'s marker into row: ${row}; column: ${column}..`);
-            board.placeMarker(row, column, getActivePlayer().marker);
+    const playRound = (cell) => {
+        if (board.getBoard()[cell].getValue() === 0) {
+            board.placeMarker(cell, getActivePlayer().marker);
+
+            getActivePlayer().array.push(parseInt(cell)); // insert index instead
+
             switchPlayerTurn();
         } else {
             console.log('Cell already taken, chose again ...');
         }
 
-        // check for a win condition here
+        // check for a win condition here       
+        winCondition();
 
-        printNewRound();
+        // printNewRound();
     }
-
 
     return { getActivePlayer, playRound, getBoard: board.getBoard }
 }
@@ -123,34 +131,23 @@ function ScreenController() {
 
         displayDiv.textContent = `${currentPlayer.name}'s turn ...`;
 
-        // Iterate through board adding button to each cell
-        // dataset attributes help determine which cell was clicked on
-        let rowCount = 0;
-        board.forEach((row) => {
-            row.forEach((cell, index) => {
-                const cellBtn = document.createElement('button');
-                cellBtn.classList.add('cell');
+        // Iterate through the board adding a button and id to each cell
+        board.forEach((cell, index) => {
+            const cellBtn = document.createElement('button');
 
-                cellBtn.dataset.row = rowCount;
-                cellBtn.dataset.column = index;
-                cellBtn.textContent = cell.getValue();
-                gridDiv.appendChild(cellBtn);
-            });
-            rowCount++;
+            cellBtn.classList.add('cell');
+            cellBtn.id = index;
+            cellBtn.textContent = cell.getValue();
+            gridDiv.appendChild(cellBtn);
         });
-
     }
 
     const clickHandlerBoard = (e) => {
-        const selectedColumn = e.target.dataset.column;
-        const selectedRow = e.target.dataset.row;
+        const selectedCell = e.target.id;
 
-        // Ensure valid cell was selected
-        if (!selectedColumn) return;
-        if (!selectedRow) return;
+        if (!selectedCell) return;
+        game.playRound(selectedCell);
 
-        game.playRound(selectedRow, selectedColumn);
-        
         updateScreen();
     }
 
