@@ -69,7 +69,7 @@ function GameController(
         board.printBoard();
     }
 
-    const winCondition = () => {
+    const checkWin = () => {
         const winConditions = [
             [0, 1, 2],  // Top row
             [3, 4, 5],  // Middle row
@@ -81,33 +81,29 @@ function GameController(
             [2, 4, 6]   // Right diagonal
         ];
 
-        console.log(players[0].array);
-        console.log(players[1].array);
-
-        console.log(winConditions.some(combination =>
-            combination.every(value =>
-                players[0].array.includes(value)
+        return winConditions.some(combination =>
+            combination.every(value => getActivePlayer().array.includes(value)
             )
-        ));
-
+        );
 
     }
 
     const playRound = (cell) => {
         if (board.getBoard()[cell].getValue() === 0) {
             board.placeMarker(cell, getActivePlayer().marker);
-
-            getActivePlayer().array.push(parseInt(cell)); // insert index instead
-
-            switchPlayerTurn();
+            getActivePlayer().array.push(parseInt(cell));
         } else {
             console.log('Cell already taken, chose again ...');
         }
 
-        // check for a win condition here       
-        winCondition();
+        // check for a win condition here
+        if (checkWin()) {
+            console.log(`${getActivePlayer().name} WON !!!`);
+            return;
+        } else {
+            switchPlayerTurn();            
+        }
 
-        // printNewRound();
     }
 
     return { getActivePlayer, playRound, getBoard: board.getBoard }
