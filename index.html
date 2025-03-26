@@ -31,7 +31,7 @@
             </div>
 
             <div class="restart">
-                <button>
+                <button id="restart-btn">
                     <svg xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                         <path
@@ -42,11 +42,20 @@
 
         </div>
 
-        <div class="grid">
-            
+        <div class="grid disabled">
+
         </div>
 
         <div class="footer">
+            <form id="player-form">
+                <label for="name1">Player 1 Name:</label>
+                <input type="text" name="name" id="name1" required>
+
+                <label for="name2">Player 2 Name:</label>
+                <input type="text" name="name" id="name2" required>
+
+                <button type="submit" id="start-btn">Start Game</button>
+            </form>
 
         </div>
     </div>
