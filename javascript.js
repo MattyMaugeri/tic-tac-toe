@@ -7,7 +7,6 @@ function GameBoard() {
         board.push(Cell());
     }
 
-    // Function methods
     const getBoard = () => board;
 
     const getNewBoard = () => {
@@ -22,6 +21,7 @@ function GameBoard() {
         board[cell].addMarker(player);
     }
 
+
     return { getBoard, placeMarker, getNewBoard };
 }
 
@@ -29,12 +29,12 @@ function GameBoard() {
 function Cell() {
     let value = '';
 
-    // Function methods
     const addMarker = (player) => {
         value = player;
     };
 
     const getValue = () => value;
+
 
     return { getValue, addMarker };
 }
@@ -42,8 +42,6 @@ function Cell() {
 
 function GameController() {
     let board = GameBoard();
-
-    const gridDiv = document.querySelector('.grid');
 
     const players = [
         {
@@ -60,7 +58,6 @@ function GameController() {
 
     let activePlayer = players[0];
 
-    // Function methods
     const getActivePlayer = () => activePlayer;
 
     const setPlayersNames = (name1, name2) => {
@@ -96,6 +93,8 @@ function GameController() {
         );
     }
 
+    const gridDiv = document.querySelector('.grid');
+
     const startGame = () => {
         gridDiv.classList.remove('disabled');
         board.getNewBoard();
@@ -121,7 +120,6 @@ function GameController() {
 
         // Check for a win
         if (checkWin()) {
-            console.log(`${getActivePlayer().name} WON !!!`);
             const gridDiv = document.querySelector('.grid');
             gridDiv.classList.add('disabled');
         } else {
@@ -144,7 +142,6 @@ function ScreenController() {
     const gridDiv = document.querySelector('.grid');
     const displayDiv = document.querySelector('.display');
 
-    // Function methods
     const updateScreen = () => {
         // Clear screen
         gridDiv.textContent = '';
@@ -152,6 +149,7 @@ function ScreenController() {
         // Show most up-to-date board and player
         const board = game.getBoard();
 
+        // Display current players name
         displayDiv.textContent = `${game.getActivePlayer().name}'s turn`;
 
         // Iterate through the board adding a button and id to each cell
@@ -177,6 +175,7 @@ function ScreenController() {
 
         updateScreen();
 
+        // Reset display text
         displayDiv.textContent = 'Enter Players Details';
 
         // Disable buttons
@@ -199,12 +198,17 @@ function ScreenController() {
     }
 
     const clickHandlerBoard = (e) => {
+        const target = e.target;
         const selectedCell = e.target.id;
 
-        if (e.target.parentNode.id === 'restart-btn') {
+        if (target.parentNode.id === 'restart-btn') {
             console.log('restart btn clicked');
             clearScreen();
             form.classList.remove('disabled');
+            // Filter through each form input and empty it
+            document.querySelectorAll('input').forEach(input => {
+                input.value = '';
+            });
         }
 
         if (e.target.id === 'start-btn') {
@@ -216,7 +220,7 @@ function ScreenController() {
 
         updateScreen();
 
-        // Display winner screen if winner is found
+        // Check for winner or tie scenario
         if (game.checkWin()) {
             winnerScreen();
         } else if (game.isFull(game.getBoard())) {
@@ -224,6 +228,7 @@ function ScreenController() {
         }
     }
 
+    // Retrieve names from the form
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -232,15 +237,15 @@ function ScreenController() {
 
         game.setPlayersNames(playerOne, playerTwo);
 
+        // Initially set the display to first players name
         displayDiv.textContent = `${playerOne}'s turn`;
     })
 
+    // Initially update screen content
     updateScreen();
-
     displayDiv.textContent = 'Enter Players Details'
+    
     boardDiv.addEventListener('click', clickHandlerBoard);
-
-    return { winnerScreen };
 
 }
 

@@ -189,6 +189,7 @@ form > input {
     border: 1px solid white;
     border-radius: 6px;
     padding: 0.5rem 1rem;
+    transition: 0.3s ease;
 }
 
 form > button {
@@ -198,4 +199,8 @@ form > button {
     padding: 0.5rem 2rem;
     align-self: center;
     font-weight: 600;
+}
+
+form > input:hover {
+    transform: scale(1.03);
 }
