@@ -43,6 +43,8 @@ function Cell() {
 function GameController() {
     let board = GameBoard();
 
+    const gridDiv = document.querySelector('.grid');
+
     const players = [
         {
             name: '',
@@ -95,8 +97,13 @@ function GameController() {
     }
 
     const startGame = () => {
-        const grid = document.querySelector('.grid');
-        grid.classList.remove('disabled');
+        gridDiv.classList.remove('disabled');
+        board.getNewBoard();
+        resetPlayerChoices();
+    }
+
+    const isFull = (grid) => {
+        return grid.every(item => item.getValue());
     }
 
     const playRound = (cell) => {
@@ -104,14 +111,19 @@ function GameController() {
             board.placeMarker(cell, getActivePlayer().marker);
             getActivePlayer().array.push(parseInt(cell));
         } else {
-            console.log('Cell already taken, chose again ...');
+            return;
         }
 
+        // Check for a tie
+        if (isFull(board.getBoard())) {
+            gridDiv.classList.add('disabled');
+        }
+
+        // Check for a win
         if (checkWin()) {
             console.log(`${getActivePlayer().name} WON !!!`);
-            const grid = document.querySelector('.grid');
-            grid.classList.add('disabled');
-            return;
+            const gridDiv = document.querySelector('.grid');
+            gridDiv.classList.add('disabled');
         } else {
             switchPlayerTurn();
         }
@@ -119,7 +131,8 @@ function GameController() {
 
     return {
         getActivePlayer, playRound, getBoard: board.getBoard,
-        getNewBoard: board.getNewBoard, resetPlayerChoices, startGame, setPlayersNames
+        getNewBoard: board.getNewBoard, resetPlayerChoices, startGame,
+        setPlayersNames, checkWin, isFull
     }
 }
 
@@ -139,7 +152,7 @@ function ScreenController() {
         // Show most up-to-date board and player
         const board = game.getBoard();
 
-        displayDiv.textContent = game.getActivePlayer().name;
+        displayDiv.textContent = `${game.getActivePlayer().name}'s turn`;
 
         // Iterate through the board adding a button and id to each cell
         board.forEach((cell, index) => {
@@ -164,10 +177,25 @@ function ScreenController() {
 
         updateScreen();
 
-        displayDiv.textContent = '';
+        displayDiv.textContent = 'Enter Players Details';
 
         // Disable buttons
         gridDiv.classList.add('disabled');
+    }
+
+    const form = document.getElementById('player-form');
+
+    const winnerScreen = () => {
+        displayDiv.textContent = `${game.getActivePlayer().name} has won!`;
+        game.getNewBoard();
+        form.classList.add('disabled');
+    }
+
+    const tieScreen = () => {
+        displayDiv.textContent = 'Game is a Tie!';
+        gridDiv.classList.add('disabled');
+        game.getNewBoard();
+        form.classList.add('disabled');
     }
 
     const clickHandlerBoard = (e) => {
@@ -176,6 +204,7 @@ function ScreenController() {
         if (e.target.parentNode.id === 'restart-btn') {
             console.log('restart btn clicked');
             clearScreen();
+            form.classList.remove('disabled');
         }
 
         if (e.target.id === 'start-btn') {
@@ -186,9 +215,15 @@ function ScreenController() {
         game.playRound(selectedCell);
 
         updateScreen();
+
+        // Display winner screen if winner is found
+        if (game.checkWin()) {
+            winnerScreen();
+        } else if (game.isFull(game.getBoard())) {
+            tieScreen();
+        }
     }
 
-    const form = document.getElementById('player-form');
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -197,14 +232,16 @@ function ScreenController() {
 
         game.setPlayersNames(playerOne, playerTwo);
 
-        displayDiv.textContent = playerOne;
-
-        e.target.reset();
+        displayDiv.textContent = `${playerOne}'s turn`;
     })
 
-
-    boardDiv.addEventListener('click', clickHandlerBoard);
     updateScreen();
+
+    displayDiv.textContent = 'Enter Players Details'
+    boardDiv.addEventListener('click', clickHandlerBoard);
+
+    return { winnerScreen };
+
 }
 
 ScreenController();
